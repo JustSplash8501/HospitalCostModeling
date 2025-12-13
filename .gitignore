@@ -1,0 +1,46 @@
+# ----------------------
+# Python
+# ----------------------
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+venv/
+env/
+*.venv/
+
+# Logs and temp files
+*.log
+*.tmp
+
+# ----------------------
+# Jupyter / Quarto
+# ----------------------
+.ipynb_checkpoints/
+.ipynb
+*.ipynb_checkpoints
+
+# Quarto cache & output
+_cache/
+_site/
+*.html
+*.pdf
+*.docx
+
+# ----------------------
+# IDE / Editor
+# ----------------------
+.vscode/
+.idea/
+
+# ----------------------
+# OS files
+# ----------------------
+.DS_Store
+Thumbs.db
+
+# ----------------------
+# Data files (optional)
+# ----------------------
+*.zip
