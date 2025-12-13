@@ -15,6 +15,8 @@ The analysis is structured in **two main phases**:
 
 ### 2. Predictive Modeling
 - Build **two distinct models** aimed at predicting hospital costs as accurately as possible.  
+    - multiple linear regression
+    - randomForest
 - Compare model performance using appropriate metrics to determine the best candidate for deployment.  
 - Highlight insights and potential use cases for healthcare cost prediction.
 
