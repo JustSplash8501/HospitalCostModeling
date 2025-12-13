@@ -1,125 +1,33 @@
+# Hospital Cost Modeling
 
-# **Comprehensive Data Science & AI Project Portfolio**
-This repository, Comprehensive Data Science & AI Project Portfolio, is meticulously curated to showcase diverse and impactful data science projects, spanning a wide array of domains and methodologies. It is designed to serve as a comprehensive learning and reference resource for data science enthusiasts, practitioners, and professionals.
+This project is the first of several personal data science initiatives I’m adding to my portfolio outside of academic work. It focuses on understanding and predicting hospital costs using real-world healthcare data.
 
-Organized into distinct sections, the repository includes:
+---
 
-* **Machine Learning Projects**: Demonstrating the power of traditional algorithms in tackling tasks like regression, classification, clustering, and time series forecasting.
-* **Deep Learning Projects**: Exploring cutting-edge neural network architectures and techniques for complex problems in image recognition, natural language processing, audio classification, and beyond.
-* **Data Engineering**: Highlighting ETL processes, web scraping, data transformation, and integration, with a focus on automation and scalability.
-* **Data Analysis**: Featuring exploratory data analysis (EDA) projects and structured SQL projects, providing insights into data-driven decision-making.
-* **Tutorials**: Offering step-by-step guides on essential topics, from mastering Python libraries to advanced concepts like time series data splitting and cloud infrastructure management.
-* **Cloud and DevOps**: Covering cloud infrastructure management, resource scaling, and model deployment using tools like Terraform, AWS, and GCP.
+## Project Overview
 
-This collection not only demonstrates the application of advanced machine learning and deep learning methods but also emphasizes best practices, reproducibility, and versatility in tackling data science problems.
-<div align="center">
- <h2><strong>Machine Learning Projects</strong></h2>
-</div>
+The analysis is structured in **two main phases**:
 
-|            Project Name             |      Task      |                                                                                                           Objective                                                                                                            |                                        Prominent Techniques / Tools                                        |
-|:-----------------------------------:|:--------------:|:------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|:----------------------------------------------------------------------------------------------------------:|
-|       Diabetes Classification       | Classification |                                                  To demonstrate the impact of data preprocessing and optimization on improving model performance for diabetes classification.                                                  |                                            Baseline ML Pipeline                                            |
-|       Heart Attack Prediction       | Classification |                                             To showcase an end-to-end machine learning workflow as part of Global AI Hub's live YouTube stream for the Machine Learning Bootcamp.                                              |                                            End-to-End Workflow                                             |
-|       Medical Cost Prediction       |   Regression   |                                To build a robust regression model by leveraging advanced hyperparameter optimization techniques and feature importance analysis to achieve optimal performance.                                |              Optuna Regression and SHAP               |
-|  Melbourne House Price Prediction   |   Regression   |              To explore and compare feature importance methods, including traditional model-based feature importance and permutation importance, to understand their differences and impact on model performance.              |                                Permutation Importance and SelectFromModel                                 |
-|        Clustering Techniques        |  Clustering    |            To provide a comprehensive tutorial and hands-on exploration of clustering techniques, evaluating their performance using metrics like K-elbow, Davies-Bouldin, Calinski-Harabasz, and silhouette scores.           |                                Clustering Algorithms and Evaluation Metrics                                |
-|    Airline Customer Satisfaction    | Classification | To conduct an end-to-end machine learning project, from data preprocessing and feature engineering to model development and evaluation, optimizing performance through hyperparameter tuning and feature selection techniques. |                   Optuna Classification and SHAP                           |
-| Forecasting USD-TRY Exchange Rates  |  Time Series   |         To analyze and forecast USD-TRY exchange rates using time series methods, comparing ARIMA and SARIMA models to optimize predictions, and evaluate model performance through backtesting and statistical tests          | ARIMA, SARIMA, ADF Test, KPSS Test, Ljung-Box Test, ACF, PACF, STL Decomposition, Hodrick-Prescott Filter |
+### 1. Data Exploration
+- Break down the dataset to understand **univariate relationships** (individual features).  
+- Investigate **multivariate relationships** to uncover correlations and patterns between variables.  
+- Identify key trends and insights to inform model development.
 
-<br>
-<div align="center">
- <h2><strong>Deep Learning Projects</strong></h2>
-</div>
+### 2. Predictive Modeling
+- Build **two distinct models** aimed at predicting hospital costs as accurately as possible.  
+- Compare model performance using appropriate metrics to determine the best candidate for deployment.  
+- Highlight insights and potential use cases for healthcare cost prediction.
 
-|                     Project Name                      |                   Task                    |                                                                                                                                                                                                                                                              Objective                                                                                                                                                                                                                                                              |                   Prominent Techniques / Tools                   |
-|:-----------------------------------------------------:|:-----------------------------------------:|:-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|:----------------------------------------------------------------:|
-|                 Face Mask Detection                   |              Computer Vision              |                                                                                                                                   To build a face mask detection system using deep learning with the MobileNetV2 architecture, capable of classifying faces as "With Mask" or "Without Mask" in both static images and real-time video streams, aimed at monitoring compliance in public spaces.                                                                                                                                    |                  MobileNetV2, Transfer Learning                  |
-|                   Gender Detection                    |              Computer Vision              |                                                                                                                                                                                                     Implement a real-time gender detection system using CNN, processing live webcam feeds to classify faces as "man" or "woman.                                                                                                                                                                                                     |                           CNN, OpenCV                            |
-|                 Email-Spam Detection                  |        Natural Language Processing        |                                                                                                                                                                                         Build a spam detection system that classifies emails as "spam" or "ham" using various machine learning algorithms, handling an imbalanced dataset.                                                                                                                                                                                          | Naive Bayes, SVM, KNN, Decision Tree, Random Forest, WordCloud   |
-|              Music Genre Classification               |          Audio Signal Processing          |                                                                                                             The objective of this project is to classify music genres using deep learning techniques, specifically leveraging the GTZAN dataset. The system extracts audio features like MFCCs, applies deep learning models (such as CNN, LSTM), and integrates the model into a web application for interactive use.                                                                                                              |                      Librosa, Flask, MySQL                       |
-|                    ASL Recognition                    |              Computer Vision              |                                                                                                                                           This project aims to develop a real-time American Sign Language (ASL) recognition system using CNN and OpenCV. It classifies ASL alphabet signs captured by a camera, providing an accessible tool for communication with the hearing impaired.                                                                                                                                           |                           CNN, OpenCV                            |
-|                       CIFAR-10                        |              Computer Vision              |                                                                                                                                               This project develops an image classification system using the CIFAR-10 dataset with a CNN model, and deploys it as a web application using Flask to predict images and display the top three predictions with their confidence levels.                                                                                                                                               |                       Augmentation, Flask                        |
-|       Sentiment Analysis & Spam Classification        |        Natural Language Processing        |                                                                                                                                                                 This project uses Natural Language Processing (NLP) for sentiment analysis on Twitter comments and SMS classification as spam or ham, with a web interface deployed via Flask for user interaction.                                                                                                                                                                 |                        LSTM, MySQL, Flask                         |
-|               Face Emotion Recognition                |              Computer Vision              |                                                                                                                                                              This project predicts facial emotions from images and videos using a CNN model based on the FER2013 dataset and stores relevant data (coordinates, image paths, and emotion labels) in a MySQL database.                                                                                                                                                               |          Augmentation, MySQL, Real-time and Image-based          |
-|              Urban Sound Classification               | Computer Vision - Audio Signal Processing |                                                                                             The Urban Sounds Flask Deployment project integrates a high-accuracy deep learning model with a Flask web application to classify urban sounds. Leveraging the UrbanSound8K dataset, it enables real-time predictions from audio and spectrogram inputs, showcasing a scalable, end-to-end pipeline from model training to web deployment.                                                                                              |             Dataset Creation, Optuna, Advanced Flask             |
-| Researching Urban Sound Classification with DL and ML | Computer Vision - Audio Signal Processing | The Urban Sound Research Project focuses on urban sound classification using Deep Learning (CNN, LSTM) and Machine Learning (KNN, Random Forest, XGBoost). Leveraging the UrbanSound8K dataset—which I personally curated by creating both melspectrogram images and audio feature tabular datasets—this project aims to enhance classification accuracy. It uses melspectrograms for deep learning models and MFCCs for machine learning models, along with statistical evaluation and A/B testing to assess model performance.    |         Dataset Creation, Custom Sound Class, A/B Test,          |
+---
 
-<br>
-<div align="center">
- <h2><strong>Data Engineering</strong></h2>
-</div>
+## Tools & Technologies
+- Python (`pandas`, `numpy`, `scikit-learn`, `matplotlib`, `seaborn`)  
+- Quarto Notebook for interactive analysis and visualization  
+- GitHub for version control and project documentation
 
-|                  Project Name                  |           Task            | Objective |        Prominent Techniques / Tools        |
-|:----------------------------------------------:|:-------------------------:|  :---: |:------------------------------------------:|
-|                NBA Player Stats                |            ETL            | This project automates the extraction, transformation, and storage of NBA player statistics using an ETL pipeline. It streamlines the retrieval of up-to-date player data, ensures its cleanliness and usability for analysis, and stores it efficiently in an MSSQL Server database for convenient access and reporting | Web Scraping, ETL Pipeline, MSSQL, Logging |
-| Real-Time and Batch Data Pipelines with Kafka  | ETL, Real-time streaming | This project builds a scalable real-time and batch data pipeline for processing synthetic stock price and sales trend data. Using Apache Kafka for streaming, PostgreSQL for data storage, and Docker for orchestration, the solution seamlessly integrates data ingestion, transformation, and reporting while showcasing modular and efficient data flow architecture. |      Docker, Apache Kafka, PostgreSQL      |
+---
 
-<br>
-<div align="center">
- <h2><strong>Data Analysis</strong></h2>
-</div>
-
-#### **I. EDA Projects**
-|     Project Name      |               Task                |                                                                                                                                             Objective                                                                                                                                              |          Prominent Techniques / Tools          |
-|:---------------------:|:---------------------------------:|:--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|:----------------------------------------------:|
-|   Netflix Original    |    Analysis and Visualization     |                                                        To explore a movie dataset by answering 15 key exploratory questions about movie genres, IMDB ratings, runtimes, languages, and release patterns through analysis and visualization.                                                        |                   Simple EDA                   |
-|        Titanic        |        Feature Engineering        |                                         To analyze survival patterns in the Titanic dataset by examining key relationships, exploring data distributions, and performing feature engineering to derive meaningful insights for future predictive modeling.                                         |              Feature Engineering               |
-|       MovieLens       |    Analysis and Visualization     |              This project explores movie release trends, genre distribution, and rating patterns over time. It aims to analyze the number of movies released per year, identify the most popular genres, and examine user ratings, focusing on top-rated movies and user engagement.               |               Big Data Analysis                |
-| Data Science Salary   |    Analysis and Visualization     |                               This project analyzes job trends, salary distributions, and work conditions, focusing on top job roles by experience level, employment type, and salary trends, along with remote work ratios and country-wise employee distribution.                                |                    Subplots                    |
-| Heart Attack Analysis |           In-depth EDA            |                                                       This project performs EDA and data visualization to explore variable relationships, distributions, and correlations using univariate, bivariate, and multivariate analysis techniques.                                                       | Univariate, Bivariate & Multivariate Analysis  |
-|     HR Analytics      |  In-depth EDA and Preprocessing   | This project performs comprehensive exploratory data analysis (EDA) and preprocessing, including examining categorical and target variables, handling missing values and outliers, and conducting various univariate, bivariate, and multivariate visualizations to prepare the data for modeling. |     End-to-End EDA and Data Preprocessing      |
-|       Glassdoor       | Data Cleaning, Feature Extraction |       This project involves cleaning a Glassdoor job posting dataset scraped using Selenium, performing feature extraction, and creating visualizations to gain insights. The focus is on transforming raw job data into a structured and informative format for analysis and visualization.       |             Data Cleaning, Plotly              |
-|        Pokemon        |        Feature Engineering        |         This project focuses on performing exploratory data analysis (EDA), cleaning and reducing the dataset, extracting relevant features, and visualizing various aspects of Pokémon statistics and characteristics, such as skill distributions, Pokémon types, and legendary status.          |                     Plotly                     |
-|  Auto EDA Comparison  |           Benchmarking            |                         This project compares the performance of AutoViz, SweetViz, and Pandas Profiling on three datasets (Titanic, House Prices, NYC Taxi). It evaluates runtime, memory, and CPU usage to recommend the best tool based on dataset size and complexity                          | Comparative Analysis across Multiple Datasets  |
-
-#### **II. SQL Projects**
-|         Project Name         |                  Task                   |         Objective         | 
-|:----------------------------:|:---------------------------------------:|:-------------------------:| 
-|      Portfolio Project       |      Data Exploration and Cleaning      |         Beginner          |
-| Netflix Tv Shows and Movies  |                   EDA                   |         Beginner          | 
-|    8 Weeks SQL Challange     | SQL Problem Solving & Database Querying | Intermediate and Advanced |
-|        Hackerrank-SQL        |          SQL Problem Solving            | Beginner to Intermediate  |
-
-<br>
-<div align="center">
- <h2><strong>Tutorials</strong></h2>
-</div>
-
-|                            Project Name                             |                     Task                     |                                                                                                                                              Objective                                                                                                                                               |
-|:-------------------------------------------------------------------:|:--------------------------------------------:|:----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|
-|                       Librosa Audio Analysis                        | Audio Signal Processing - Feature Extraction |                             This tutorial demonstrates the use of the Librosa library for audio signal processing, covering key features such as time domain (Amplitude Envelope, RMS, ZCR) and frequency domain features (Spectral Centroid, Spectral Rolloff, MFCCs).                              |
-|                      15 Python Tips and Tricks                      |              Python Programming              |                                                    This tutorial highlights 15 Python tips and tricks to improve code efficiency, readability, and performance, covering techniques like value swapping, f-string formatting, and comprehensions.                                                    |
-|                       Gentle Guide of Pandas                        |  Pandas Introduction and Data Manipulation   |                                              This guide introduces Pandas, covering its key functionalities like data merging, visualization, statistical analysis, and handling missing values, to help users efficiently manipulate and analyze data.                                              |
-|                      A Complete Guide on Numpy                      |  Numpy Introduction and Array Manipulation   |                                                      This guide covers the fundamentals of Numpy, focusing on array manipulation, mathematical operations, and key functions to help users perform efficient numerical computations in Python.                                                       |
-|           Mastering Cross-Validation in Machine Learning            |         Cross-Validation Techniques          |                             This guide explains cross-validation in machine learning, highlighting its role in improving model performance and generalization. It covers key techniques like KFold, StratifiedKFold, and TimeSeriesSplit for effective model evaluation.                             |
-|      The Ultimate Guide to Data Splitting for Machine Learning      |          Data Splitting Techniques           |                                       This guide explains key data-splitting methods, including Holdout, K-Fold, and TimeSeriesSplit, with visualizations and code examples to help you choose the best approach for reliable and efficient model performance.                                       |
-| Mastering Time Series Data Splitting Techniques and Visualizations |          Time Series Data Splitting          |                                                       Explore and visualize key time series data splitting techniques (Holdout, TimeSeriesSplit, Sliding Window, etc.) to understand their impact on model evaluation and forecasting accuracy                                                       |
-|                            SQL Tutorials                            |                SQL Tutorials                 |                                                     Learn and master essential SQL concepts, including querying databases, data manipulation, joins, subqueries, indexing, and optimization techniques, to efficiently manage and analyze data.                                                      |
-|            Terraform Fundamentals: A Step-by-Step Guide             |             Terraform Tutorials              | Learn the fundamentals of Terraform, including infrastructure as code, provisioning resources, managing cloud environments, and automating infrastructure deployment. This step-by-step guide will help you understand how to use Terraform to define, manage, and scale infrastructure efficiently. |
-|            Mastering Docker - From Fundamentals to Hands-On Projects   |             Docker Tutorials              | A comprehensive guide that takes you from understanding Docker basics to implementing real-world projects with practical, hands-on experience. |
-
-<br>
-<div align="center">
- <h2><strong>Cloud and DevOps</strong></h2>
-</div>
-
-|                  Project Name                  |        Task         |                                            Objective                                            | Prominent Techniques / Tools |
-|:----------------------------------------------:|:-------------------:|:-----------------------------------------------------------------------------------------------:|:----------------------------:|
-| Terraform Fundamentals: A Step-by-Step Guide   | Terraform Tutorials | Master Terraform to automate infrastructure deployment and manage cloud resources efficiently.  |          Terraform           |
-| Mastering Docker - From Fundamentals to Hands-On Projects   | Docker Tutorials | To provide a comprehensive and practical guide to mastering Docker by covering fundamental concepts and hands-on projects for real-world applications.  |          Docker           |
-| Kubernetes -  Guide for Modern DevOps   | Kubernetes Tutorials | This guide aims to deliver a comprehensive and practical approach to mastering Kubernetes by exploring fundamental concepts and hands-on projects for real-world applications.  |          Kubernetes           |
-
-
-## **Future Work**
-* Expanding the repository with additional machine learning projects, including time series forecasting and more natural language processing (NLP) use cases.
-* Incorporating more sophisticated feature selection and interpretability methods (e.g., LIME, RFE, PDP, ICE, and TreeSHAP).
-* Adding further deep learning use cases and advanced ensemble techniques (e.g., stacking, bagging).
-* Adding advanced deep learning use cases, such as transformers, GANs, and self-supervised learning architectures.
-* Introducing hybrid models that combine machine learning and deep learning techniques to tackle real-world challenges.
-* Scaling data engineering projects by integrating streaming pipelines with tools like Kafka or Spark for real-time data processing.
-* Expanding cloud and DevOps coverage by demonstrating end-to-end model deployment pipelines and infrastructure as code (IaC) for scalable applications.
-* Publishing tutorial content for advanced topics, such as hyperparameter tuning, model optimization, and distributed computing
-
-## **Contributing**
-Contributions are highly encouraged! Feel free to open issues or submit pull requests. Suggestions for new projects or improvements to existing ones are always welcome.
-
+## Key Takeaways
+- Explored the dataset to gain actionable insights into hospital cost drivers.  
+- Developed and evaluated predictive models for real-world healthcare applications.  
+- Built a foundation for deploying data-driven solutions in medical cost management.
