@@ -1,1 +1,0 @@
-This is an example text file for Terraform Filesystem Functions.

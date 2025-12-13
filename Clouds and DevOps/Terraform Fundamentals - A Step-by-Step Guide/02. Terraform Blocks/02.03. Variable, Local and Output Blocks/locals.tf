@@ -1,1 +1,0 @@
-# If the local variables grow in complexity or number, consider creating a separate locals.tf file for better organization.
