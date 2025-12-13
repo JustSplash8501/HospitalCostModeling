@@ -1,0 +1,29 @@
+---
+title: "Hospital Cost Data Exploration"
+author: Reese Wilson
+format: html
+---
+
+```{python}
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+```
+
+# Import data
+
+```{python}
+path = r"A:\VSCodeProjects\MLA Projects\HospitalCostModeling\data\insurance.csv"
+data = pd.read_csv(path)
+print(data.head())
+```
+
+# Data Exploration
+
+```{python}
+numeric_cols = data.select_dtypes(include='number')
+
+sns.pairplot(numeric_cols)
+plt.show()
+```
