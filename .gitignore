@@ -13,6 +13,7 @@ env/
 # Logs and temp files
 *.log
 *.tmp
+.vdoc*.py
 
 # ----------------------
 # Jupyter / Quarto

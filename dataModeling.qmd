@@ -28,6 +28,35 @@ hospitaldata.head()
 # Two Modeling Approaches
 ## Multi-Linear Regression
 
+### Check Multi-Linear Regression Assumptions
+**VIF**
+Based on variable importance factor (VIF), no multi-collinearity exists within this dataset. This test satisifies one of the assumption required for multi-linear regression.
+```{python}
+from statsmodels.stats.outliers_influence import variance_inflation_factor
+from statsmodels.tools.tools import add_constant
+
+def compute_vif(df):
+    numeric_cols = hospitaldata.select_dtypes(include="number")
+
+    numeric_cols = add_constant(numeric_cols)
+    vif = pd.DataFrame(
+        {
+            "feature": numeric_cols.columns,
+            "VIF": [
+                variance_inflation_factor(numeric_cols.values, i)
+                for i in range(numeric_cols.shape[1])
+            ],
+        }
+    )
+    return vif
+
+
+vif_df = compute_vif(hospitaldata)
+print(vif_df)
+```
+
+### Consutruct Multi-Linear Regression Model
+
 ```{python}
 from sklearn.preprocessing import OneHotEncoder
 from sklearn.preprocessing import StandardScaler
@@ -58,6 +87,48 @@ mlmmodel = Pipeline(
 )
 
 mlmmodel.fit(X_train, y_train)
+```
+
+**Residuals Distribution:**
+- Clear heteroskedasticity
+- indications of non-linear relationships
+- Some sort of latent structure exists
+- High-leverage regions
+
+```{python}
+y_hat = mlmmodel.predict(X_train)
+residuals = y_train - y_hat
+
+fig, ax = plt.subplots()
+ax.scatter(y_hat, residuals)
+ax.axhline(0)
+ax.set_xlabel("Fitted values")
+ax.set_ylabel("Residuals")
+plt.show()
+```
+
+**Q-Q Plot and Independence of Errors**
+- Further suggestions of non-linear relationships within the data
+- No autocorrelation exists
+```{python}
+import scipy.stats as stats
+from statsmodels.stats.stattools import durbin_watson
+
+# Q-Q Plot
+fig, ax = plt.subplots()
+stats.probplot(residuals, plot=ax)
+ax.set_title("Q–Q Plot of Residuals")
+plt.show()
+
+# Auto-correlation test
+dw_val = durbin_watson(residuals)
+dw_val_str = (
+    f"Autocorrelation exists (DW = {dw_val:.2f})"
+    if dw_val < 1.5 or dw_val > 2.5
+    else f"No autocorrelation (DW = {dw_val:.2f})"
+)
+
+print(dw_val_str)
 ```
 
 ### Model Diagnostics
@@ -91,6 +162,8 @@ print(f"    Test Dataset Adjusted R2 = {adj_r2_test:.2f}")
 mae_train = mean_absolute_error(y_test, y_test_pred)
 print(f"    Test Dataset MAE: {mae_train:.2f}\n\n")
 ```
+
+Ultimately, despite the moderate variance explained in this dataset by the multilinear regression (Adj. R^2 = 0.78) on the test dataset, there are indications of assumptions being violated based on residual analysis. To address this, a model, randomForest, which can capture non-linear relationships will be tested to determine if it can be more accurate in prediction of the target variable.
 
 ## randomForst Regressor
 
@@ -135,6 +208,7 @@ print(f"    Test Dataset R-squared: {r2_test:.2f}")
 mae_train = mean_absolute_error(y_test, y_test_pred)
 print(f"    Test Dataset MAE: {mae_train:.2f}\n\n")
 ```
+Preliminarily, the random forest model appears to be improved from the multi-linear regression with R^2 of 0.84 and a MAE of 3192 on the test dataset. With further tuning, the error of prediction can likely be decreased further improving the overall ability of the model to produce a more confident prediction.
 
 ## randomForest Regressor Tuned
 
@@ -283,8 +357,10 @@ print(f"    Test Dataset R-squared: {r2_test:.2f}")
 mae_train = mean_absolute_error(y_test, y_test_pred)
 print(f"    Test Dataset MAE: {mae_train:.2f}\n\n")
 ```
+While the R^2 of the tuned random forest model did not improve compared to the base model, the MAE of the model was improved from 3192.66 to 2560.42 on the test dataset suggesting a noticeable improved. Given this improvement, the tuned model should be statistically tested against the multi-linear regression model to determine which method statistically produces less error in prediction.
 
 # Compare Modeling Approaches
+To determine, statistcally, which model produces less error in prediction, a paired T-test comparing the residuals of the multi-linear regression and tuned random forest will be used.
 
 ```{python}
 import numpy as np
@@ -305,3 +381,4 @@ p_value_str = "<0.01" if p_value < 0.01 else f"{p_value:.4f}"
 print(f"MLM MAE: {np.mean(mlmerr):.2f}\nRFR Tuned MAE: {np.mean(rfrtuneerr):.2f}")
 print(f"Paired t-test p-value (MAE): {p_value_str}")
 ```
+The tuned random forest model produced less error (*P* < 0.01) than the multi-linear regression model indicating the random forest model better captured the relationship between individuals basic health information and their hostpital charges.
