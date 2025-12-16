@@ -2,7 +2,12 @@
 title: "Medical Insurance Cost Prediction: A Machine Learning Analysis"
 author: "Reese Wilson"
 date: today
-format: pdf
+format: 
+  pdf:
+    toc: true
+  html:
+    toc: true
+    theme: cosmo
 description: |
   Analysis and modeling of insurance charges using demographic and health features.
   Includes feature engineering, Random Forest regression with hyperparameter tuning via Optuna,
