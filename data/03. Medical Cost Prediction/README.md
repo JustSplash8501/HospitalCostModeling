@@ -17,7 +17,11 @@ This dataset allows us to explore how various factors like age, BMI, smoking hab
 
 ## **📄 Project Contents**
 1. **EDA (Exploratory Data Analysis)**
-    - A thorough examination of the dataset for understanding key insights and identifying patterns.
+A thorough examination of the dataset for understanding key insights and identifying patterns.
+- Dataset shape, data types, and missingness
+- Summary statistics for numeric features
+- Cardinality of categorical variables
+- Initial assessment of feature relevance
 
 2. **Data Visualization**: Visualization of both univariate and bivariate relationships.
 

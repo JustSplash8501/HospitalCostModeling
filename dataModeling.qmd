@@ -1,9 +1,17 @@
 ---
 title: "Hospital Cost Data Modeling"
 author: Reese Wilson
+date: 2025-08-16
+description: |
+  Analysis and modeling of insurance charges using demographic and health features.
+  Includes feature engineering, Random Forest regression with hyperparameter tuning via Optuna,
+  and interpretability with SHAP.
+keywords: [data science, machine learning, regression, Random Forest, Optuna, SHAP]
+repository: https://github.com/JustSplash8501/hospital-cost-modeling
 format: html
 ---
 
+# Import data
 
 ```{python}
 import numpy as np
@@ -11,11 +19,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 import os
-```
 
-# Import data
-
-```{python}
 if os.name == "posix":
     path = "/Users/raw/Desktop/gitProjects/HospitalCostModeling/data/insurance.csv"
 else:
@@ -237,12 +241,12 @@ rfrtunemodel = Pipeline(
 
 
 def objective(trial):
-    n_estimators = trial.suggest_int("regressor__n_estimators", 100, 1000)
-    max_depth = trial.suggest_int("regressor__max_depth", 5, 30)
-    min_samples_split = trial.suggest_int("regressor__min_samples_split", 2, 10)
-    min_samples_leaf = trial.suggest_int("regressor__min_samples_leaf", 1, 5)
+    n_estimators = trial.suggest_int("regressor__n_estimators", 100, 500)
+    max_depth = trial.suggest_int("regressor__max_depth", 8, 20)  # Sweet spot range
+    min_samples_split = trial.suggest_int("regressor__min_samples_split", 2, 15)
+    min_samples_leaf = trial.suggest_int("regressor__min_samples_leaf", 1, 8)
     max_features = trial.suggest_categorical(
-        "regressor__max_features", ["sqrt", "log2"]
+        "regressor__max_features", ["sqrt", "log2", 0.5]
     )
 
     rfrtunemodel.set_params(
@@ -254,10 +258,16 @@ def objective(trial):
     )
 
     score = cross_val_score(
-        rfrtunemodel, X_train, y_train, cv=5, scoring="neg_mean_absolute_error", n_jobs = 5
+        rfrtunemodel,
+        X_train,
+        y_train,
+        cv=5,
+        scoring="neg_root_mean_squared_error",
+        n_jobs=5,
     ).mean()
 
     return score
+
 
 study = optuna.create_study(direction="maximize", sampler=GPSampler(n_startup_trials=5))
 study.optimize(objective, n_trials=50, timeout=3600)
@@ -357,7 +367,24 @@ print(f"    Test Dataset R-squared: {r2_test:.2f}")
 mae_train = mean_absolute_error(y_test, y_test_pred)
 print(f"    Test Dataset MAE: {mae_train:.2f}\n\n")
 ```
+
 While the R^2 of the tuned random forest model did not improve compared to the base model, the MAE of the model was improved from 3192.66 to 2560.42 on the test dataset suggesting a noticeable improved. Given this improvement, the tuned model should be statistically tested against the multi-linear regression model to determine which method statistically produces less error in prediction.
+
+### Feature Importance
+
+```{python}
+import shap
+
+# Explain the fitted RandomForest on preprocessed data
+preprocessor = rfrtunemodel.named_steps["preprocess"]
+X_train_proc = preprocessor.transform(X_train)
+feature_names = preprocessor.get_feature_names_out()
+
+explainer_tree = shap.TreeExplainer(rfrtunemodel.named_steps["regressor"])
+shap_values_tree = explainer_tree(X_train_proc)
+shap.summary_plot(shap_values_tree, features=X_train_proc, feature_names=feature_names)
+```
+Based on SHAP value, the most influential factors are whether individuals smoke, their age, bmi, and children. Their sex and region appear to be lowly influential to the models predictability relative to the previous features mentioned.
 
 # Compare Modeling Approaches
 To determine, statistcally, which model produces less error in prediction, a paired T-test comparing the residuals of the multi-linear regression and tuned random forest will be used.
@@ -365,8 +392,10 @@ To determine, statistcally, which model produces less error in prediction, a pai
 ```{python}
 from joblib import Parallel, delayed
 from sklearn.utils import resample
-from sklearn.metrics import mean_absolute_error, r2_score
+from sklearn.metrics import r2_score, mean_absolute_error, mean_squared_error
 from sklearn.model_selection import train_test_split
+import matplotlib.pyplot as plt
+import numpy as np
 
 # Use a paired T-test to compare MAE errors
 from scipy.stats import ttest_rel
@@ -379,5 +408,121 @@ __, p_value = ttest_rel(mlmerr, rfrtuneerr)
 p_value_str = "<0.01" if p_value < 0.01 else f"{p_value:.4f}"
 print(f"MLM MAE: {np.mean(mlmerr):.2f}\nRFR Tuned MAE: {np.mean(rfrtuneerr):.2f}")
 print(f"Paired t-test p-value (MAE): {p_value_str}")
+
+# Calculate metrics for all models
+models = {
+    "Multi-Linear Regression": mlmmodel,
+    "Random Forest (Base)": rfrmodel,
+    "Random Forest (Tuned)": rfrtunemodel,
+}
+
+results = []
+for model_name, model in models.items():
+    # Training metrics
+    y_train_pred = model.predict(X_train)
+    train_r2 = r2_score(y_train, y_train_pred)
+    train_mae = mean_absolute_error(y_train, y_train_pred)
+    train_rmse = np.sqrt(mean_squared_error(y_train, y_train_pred))
+
+    # Test metrics
+    y_test_pred = model.predict(X_test)
+    test_r2 = r2_score(y_test, y_test_pred)
+    test_mae = mean_absolute_error(y_test, y_test_pred)
+    test_rmse = np.sqrt(mean_squared_error(y_test, y_test_pred))
+
+    results.append(
+        {
+            "Model": model_name,
+            "Train R²": train_r2,
+            "Test R²": test_r2,
+            "Train MAE": train_mae,
+            "Test MAE": test_mae,
+            "Train RMSE": train_rmse,
+            "Test RMSE": test_rmse,
+        }
+    )
+
+# Create DataFrame
+performance_df = pd.DataFrame(results)
+
+# Format for display
+performance_df_display = performance_df.copy()
+format_dict = {
+    "Train R²": "{:.4f}",
+    "Test R²": "{:.4f}",
+    "Train MAE": "${:,.2f}",
+    "Test MAE": "${:,.2f}",
+    "Train RMSE": "${:,.2f}",
+    "Test RMSE": "${:,.2f}",
+}
+
+for col, fmt in format_dict.items():
+    performance_df_display[col] = performance_df_display[col].map(fmt.format)
+
+print(performance_df_display)
+
+fig, axes = plt.subplots(1, 3, figsize=(15, 5))
+
+models_list = performance_df["Model"].tolist()
+x = np.arange(len(models_list))
+width = 0.35
+
+# R² comparison
+ax1 = axes[0]
+ax1.bar(x - width / 2, performance_df["Train R²"], width, label="Train", alpha=0.8)
+ax1.bar(x + width / 2, performance_df["Test R²"], width, label="Test", alpha=0.8)
+ax1.set_ylabel("R² Score")
+ax1.set_title("R² Comparison")
+ax1.set_xticks(x)
+ax1.set_xticklabels(models_list, rotation=45, ha="right")
+ax1.legend()
+ax1.grid(axis="y", alpha=0.3)
+
+# MAE comparison
+ax2 = axes[1]
+ax2.bar(x - width / 2, performance_df["Train MAE"], width, label="Train", alpha=0.8)
+ax2.bar(x + width / 2, performance_df["Test MAE"], width, label="Test", alpha=0.8)
+ax2.set_ylabel("Mean Absolute Error ($)")
+ax2.set_title("MAE Comparison")
+ax2.set_xticks(x)
+ax2.set_xticklabels(models_list, rotation=45, ha="right")
+ax2.legend()
+ax2.grid(axis="y", alpha=0.3)
+
+# RMSE comparison
+ax3 = axes[2]
+ax3.bar(x - width / 2, performance_df["Train RMSE"], width, label="Train", alpha=0.8)
+ax3.bar(x + width / 2, performance_df["Test RMSE"], width, label="Test", alpha=0.8)
+ax3.set_ylabel("Root Mean Squared Error ($)")
+ax3.set_title("RMSE Comparison")
+ax3.set_xticks(x)
+ax3.set_xticklabels(models_list, rotation=45, ha="right")
+ax3.legend()
+ax3.grid(axis="y", alpha=0.3)
+
+plt.tight_layout()
+plt.show()
+
 ```
+
 The tuned random forest model produced less error (*P* < 0.01) than the multi-linear regression model indicating the random forest model better captured the relationship between individuals basic health information and their hostpital charges.
+
+# Save Final Model
+
+```{python}
+import joblib
+from datetime import datetime
+import sklearn
+
+model_artifact = {
+    "model": rfrtunemodel,
+    "best_params": study.best_params,
+    "test_r2": r2_test,
+    "test_mae": mae_train,
+    "feature_names": list(X_train.columns),
+    "trained_date": datetime.now().isoformat(),
+    "sklearn_version": sklearn.__version__,
+}
+
+joblib.dump(model_artifact, "model_artifact.pkl")
+```
