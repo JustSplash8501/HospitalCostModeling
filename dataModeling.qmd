@@ -561,6 +561,8 @@ The findings have clear implications for insurance pricing, risk management, and
 
 # Save Final Model
 
+This final model will be used for the web UI deployment where individuals can enter their health and descriptive information and recieve a prediction for thei rhealth insurance cost.
+
 ```{python}
 import joblib
 from datetime import datetime
