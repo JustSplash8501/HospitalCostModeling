@@ -4,3 +4,304 @@ author: Reese Wilson
 format: html
 ---
 
+
+```{python}
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+
+import os
+```
+
+# Import data
+
+```{python}
+if os.name == "posix":
+    path = "/Users/raw/Desktop/gitProjects/HospitalCostModeling/data/insurance.csv"
+else:
+    path = r"A:\VSCodeProjects\MLA Projects\HospitalCostModeling\data\insurance.csv"
+
+hospitaldata = pd.read_csv(path)
+hospitaldata.head()
+```
+
+# Two Modeling Approaches
+## Multi-Linear Regression
+
+```{python}
+from sklearn.preprocessing import OneHotEncoder
+from sklearn.preprocessing import StandardScaler
+from sklearn.compose import ColumnTransformer
+from sklearn.pipeline import Pipeline
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LinearRegression
+
+x = pd.DataFrame(hospitaldata.drop(["charges"], axis=1))
+cat_cols = x.select_dtypes(include="object").columns
+num_cols = x.select_dtypes(exclude="object").columns
+
+y = pd.Series(hospitaldata["charges"])
+
+X_train, X_test, y_train, y_test = train_test_split(
+    x, y, test_size=0.2, random_state=42
+)
+
+preprocess = ColumnTransformer(
+    transformers=[
+        ("num", StandardScaler(), num_cols),
+        ("cat", OneHotEncoder(drop="first", handle_unknown="ignore"), cat_cols),
+    ]
+)
+
+mlmmodel = Pipeline(
+    steps=[("preprocess", preprocess), ("regressor", LinearRegression())]
+)
+
+mlmmodel.fit(X_train, y_train)
+```
+
+### Model Diagnostics
+
+```{python}
+from sklearn.metrics import r2_score, mean_absolute_error
+
+
+def adj_r2_score(r2, n, p):
+    adj_r2 = 1 - (1 - r2) * (n - 1) / (n - p - 1)
+    return adj_r2
+
+
+# Train Metrics
+y_train_pred = mlmmodel.predict(X_train)
+r2_train = r2_score(y_train, y_train_pred)
+n_train = np.shape(y_train)[0]
+p = mlmmodel.n_features_in_
+adj_r2_train = adj_r2_score(r2_train, n_train, p)
+print(f"MLM Regressor")
+print(f"    Training Dataset Adjusted R2 = {adj_r2_train:.2f}")
+mae_train = mean_absolute_error(y_train, y_train_pred)
+print(f"    Training Dataset MAE: {mae_train:.2f}\n")
+
+# Test Metrics
+y_test_pred = mlmmodel.predict(X_test)
+r2_test = r2_score(y_test, y_test_pred)
+n_test = np.shape(y_test)[0]
+adj_r2_test = adj_r2_score(r2_test, n_test, p)
+print(f"    Test Dataset Adjusted R2 = {adj_r2_test:.2f}")
+mae_train = mean_absolute_error(y_test, y_test_pred)
+print(f"    Test Dataset MAE: {mae_train:.2f}\n\n")
+```
+
+## randomForst Regressor
+
+```{python}
+from sklearn.preprocessing import OneHotEncoder
+from sklearn.compose import ColumnTransformer
+from sklearn.pipeline import Pipeline
+from sklearn.ensemble import RandomForestRegressor
+
+preprocess = ColumnTransformer(
+    transformers=[
+        ("num", "passthrough", num_cols),
+        ("cat", OneHotEncoder(drop="first", handle_unknown="ignore"), cat_cols),
+    ]
+)
+
+rfrmodel = Pipeline(
+    steps=[("preprocess", preprocess), 
+    ("regressor", RandomForestRegressor(max_depth=2, random_state=0))]
+)
+
+rfrmodel.fit(X_train, y_train)
+```
+
+### Model Diagnostics
+
+```{python}
+from sklearn.metrics import r2_score, mean_absolute_error
+
+# Training
+y_train_pred = rfrmodel.predict(X_train)
+r2_train = r2_score(y_train, y_train_pred)
+print(f"randomForest Regressor")
+print(f"    Training Dataset R-squared: {r2_train:.2f}")
+mae_train = mean_absolute_error(y_train, y_train_pred)
+print(f"    Training Dataset MAE: {mae_train:.2f}\n")
+
+# Test
+y_test_pred = rfrmodel.predict(X_test)
+r2_test = r2_score(y_test, y_test_pred)
+print(f"    Test Dataset R-squared: {r2_test:.2f}")
+mae_train = mean_absolute_error(y_test, y_test_pred)
+print(f"    Test Dataset MAE: {mae_train:.2f}\n\n")
+```
+
+## randomForest Regressor Tuned
+
+```{python}
+from sklearn.preprocessing import OneHotEncoder
+from sklearn.compose import ColumnTransformer
+from sklearn.pipeline import Pipeline
+from sklearn.model_selection import cross_val_score
+from sklearn.ensemble import RandomForestRegressor
+import optuna
+from optuna.samplers import TPESampler
+
+preprocess = ColumnTransformer(
+    transformers=[
+        ("num", "passthrough", num_cols),
+        ("cat", OneHotEncoder(drop="first", handle_unknown="ignore"), cat_cols),
+    ]
+)
+
+rfrtunemodel = Pipeline(
+    [
+        ("preprocess", preprocess),
+        ("regressor", RandomForestRegressor(random_state=42)),
+    ]
+)
+
+
+def objective(trial):
+    n_estimators = trial.suggest_int("regressor__n_estimators", 100, 1000)
+    max_depth = trial.suggest_int("regressor__max_depth", 5, 30)
+    min_samples_split = trial.suggest_int("regressor__min_samples_split", 2, 10)
+    min_samples_leaf = trial.suggest_int("regressor__min_samples_leaf", 1, 5)
+    max_features = trial.suggest_categorical(
+        "regressor__max_features", ["sqrt", "log2"]
+    )
+
+    rfrtunemodel.set_params(
+        regressor__n_estimators=n_estimators,
+        regressor__max_depth=max_depth,
+        regressor__min_samples_split=min_samples_split,
+        regressor__min_samples_leaf=min_samples_leaf,
+        regressor__max_features=max_features,
+    )
+
+    score = cross_val_score(
+        rfrtunemodel, X_train, y_train, cv=5, scoring="neg_mean_absolute_error", n_jobs = 5
+    ).mean()
+
+    return score
+
+study = optuna.create_study(direction="maximize", sampler=GPSampler(n_startup_trials=5))
+study.optimize(objective, n_trials=50, timeout=3600)
+
+best_params = study.best_params
+rfrtunemodel.set_params(**best_params)
+rfrtunemodel.fit(X_train, y_train)
+y_pred = rfrtunemodel.predict(X_test)
+```
+
+### Model Training History
+
+```{python}
+import matplotlib.pyplot as plt
+import numpy as np
+from sklearn.metrics import r2_score, mean_absolute_error
+import optuna.visualization.matplotlib as ovm
+
+# Create the optimization history plot with custom styling
+fig, ax = plt.subplots(figsize=(12, 6), dpi=100)
+
+# Optimization history data
+trials = study.trials
+trial_numbers = [t.number for t in trials]
+values = [t.value for t in trials if t.value is not None]
+trial_numbers = [t.number for t in trials if t.value is not None]
+
+# Plot individual trial values
+ax.scatter(
+    trial_numbers,
+    np.abs(values),
+    alpha=0.6,
+    s=50,
+    color="#3498db",
+    edgecolors="white",
+    linewidth=1.5,
+    zorder=3,
+    label="Trial Value",
+)
+
+# Calculate and plot the best value so far
+best_values = []
+abs_values = [abs(v) for v in values]
+current_best = float("inf")
+for abs_val in abs_values:
+    current_best = min(current_best, abs_val)
+    best_values.append(current_best)
+
+ax.plot(
+    trial_numbers,
+    best_values,
+    color="#e74c3c",
+    linewidth=2.5,
+    label="Best Value",
+    zorder=4,
+)
+
+# Styling
+ax.set_xlabel("Trial Number", fontsize=12, fontweight="bold", labelpad=10)
+ax.set_ylabel("Objective Value", fontsize=12, fontweight="bold", labelpad=10)
+ax.set_title("Optimization History", fontsize=14, fontweight="bold", pad=20)
+
+# Grid
+ax.grid(True, alpha=0.3, linestyle="--", linewidth=0.8, zorder=1)
+ax.set_axisbelow(True)
+
+# Legend
+ax.legend(
+    loc="best", frameon=True, fancybox=True, shadow=True, fontsize=10, framealpha=0.95
+)
+
+# Spines
+for spine in ax.spines.values():
+    spine.set_visible(True)
+    spine.set_linewidth(2)
+    spine.set_edgecolor("black")
+
+# Tight layout
+plt.tight_layout()
+plt.show()
+```
+
+### Tuned Model Diagnostics
+
+```{python}
+from sklearn.metrics import r2_score, mean_absolute_error
+
+print(f"Tuned randomForest Regressor")
+best_params_str = "\n".join(f"        {k}: {v}" for k, v in study.best_params.items())
+print(f"    Best hyperparameters:\n{best_params_str}")
+print(f"    Best CV MAE: {np.abs(study.best_value):.2f}")
+
+# Test Metrics
+y_test_pred = rfrtunemodel.predict(X_test)
+r2_test = r2_score(y_test, y_test_pred)
+print(f"    Test Dataset R-squared: {r2_test:.2f}")
+mae_train = mean_absolute_error(y_test, y_test_pred)
+print(f"    Test Dataset MAE: {mae_train:.2f}\n\n")
+```
+
+# Compare Modeling Approaches
+
+```{python}
+import numpy as np
+from joblib import Parallel, delayed
+from sklearn.utils import resample
+from sklearn.metrics import mean_absolute_error, r2_score
+from sklearn.model_selection import train_test_split
+
+# Use a paired T-test to compare MAE errors
+from scipy.stats import ttest_rel
+from sklearn.metrics import mean_absolute_error, r2_score
+
+mlmerr = np.abs(y_test - mlmmodel.predict(X_test))
+rfrtuneerr = np.abs(y_test - rfrtunemodel.predict(X_test))
+
+__, p_value = ttest_rel(mlmerr, rfrtuneerr)
+p_value_str = "<0.01" if p_value < 0.01 else f"{p_value:.4f}"
+print(f"MLM MAE: {np.mean(mlmerr):.2f}\nRFR Tuned MAE: {np.mean(rfrtuneerr):.2f}")
+print(f"Paired t-test p-value (MAE): {p_value_str}")
+```

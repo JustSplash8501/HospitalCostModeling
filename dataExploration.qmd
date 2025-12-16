@@ -15,15 +15,219 @@ import seaborn as sns
 
 ```{python}
 path = r"A:\VSCodeProjects\MLA Projects\HospitalCostModeling\data\insurance.csv"
-data = pd.read_csv(path)
-print(data.head())
+hospitaldata = pd.read_csv(path)
+hospitaldata.head()
+hospitaldata.info()
+hospitaldata.describe()
+hospitaldata.select_dtypes("object").nunique()
+temp = hospitaldata.copy()
 ```
 
 # Data Exploration
+## Numerical Variables
+```{python}
+numeric_cols = hospitaldata.select_dtypes(include="number")
+print(numeric_cols.columns)
+
+# Set style for better-looking plots
+sns.set_style("whitegrid")
+plt.rcParams["figure.dpi"] = 100
+
+sns.pairplot(numeric_cols, diag_kind="kde", plot_kws={"alpha": 0.6})
+plt.suptitle("Pairplot of Numeric Variables", y=1.02, fontsize=14, fontweight="bold")
+plt.tight_layout()
+plt.show()
+```
+
+## Correlation to Charges
+Region is nearly worthless
 
 ```{python}
-numeric_cols = data.select_dtypes(include='number')
+# Encode categorical variables for correlation analysis
+for col in ["sex", "smoker", "region"]:
+    temp[col] = temp[col].astype("category").cat.codes
 
-sns.pairplot(numeric_cols)
+# Display correlation with charges
+print("Correlation with Charges (sorted):")
+print(temp.corr()["charges"].sort_values())
+```
+
+## Correlation heatmap
+
+```{python}
+# Create correlation heatmap
+fig, ax = plt.subplots(figsize=(10, 8))
+correlation_matrix = temp.corr()
+
+sns.heatmap(
+    correlation_matrix,
+    annot=True,
+    fmt=".2f",
+    cmap="coolwarm",
+    center=0,
+    square=True,
+    linewidths=1,
+    cbar_kws={"shrink": 0.8},
+    ax=ax,
+)
+
+ax.set_title("Correlation Matrix Heatmap", fontsize=14, fontweight="bold", pad=20)
+plt.tight_layout()
+plt.show()
+```
+
+## Distribution of Charges - Target Variable
+```{python}
+fig, axes = plt.subplots(1, 2, figsize=(14, 5))
+
+# Histogram with KDE
+axes[0].hist(
+    hospitaldata["charges"], bins=50, alpha=0.7, color="#3498db", edgecolor="black"
+)
+axes[0].set_xlabel("Charges ($)", fontsize=11, fontweight="bold")
+axes[0].set_ylabel("Frequency", fontsize=11, fontweight="bold")
+axes[0].set_title("Distribution of Hospital Charges", fontsize=12, fontweight="bold")
+axes[0].grid(True, alpha=0.3)
+
+# Box plot
+axes[1].boxplot(
+    hospitaldata["charges"],
+    vert=True,
+    patch_artist=True,
+    boxprops=dict(facecolor="#3498db", alpha=0.7),
+    medianprops=dict(color="#e74c3c", linewidth=2),
+    whiskerprops=dict(linewidth=1.5),
+    capprops=dict(linewidth=1.5),
+)
+axes[1].set_ylabel("Charges ($)", fontsize=11, fontweight="bold")
+axes[1].set_title("Box Plot of Hospital Charges", fontsize=12, fontweight="bold")
+axes[1].grid(True, alpha=0.3, axis="y")
+
+plt.tight_layout()
+plt.show()
+
+print(f"Mean Charges: ${hospitaldata['charges'].mean():,.2f}")
+print(f"Median Charges: ${hospitaldata['charges'].median():,.2f}")
+print(f"Std Dev: ${hospitaldata['charges'].std():,.2f}")
+```
+
+
+## Categorical variables analysis
+
+```{python}
+fig, axes = plt.subplots(2, 2, figsize=(14, 10))
+
+categorical_cols = ["sex", "smoker", "region"]
+colors = ["#3498db", "#e74c3c", "#2ecc71"]
+
+# Sex vs Charges
+sns.boxplot(
+    data=hospitaldata,
+    x="sex",
+    y="charges",
+    ax=axes[0, 0],
+    palette=[colors[0], colors[1]],
+)
+axes[0, 0].set_title("Charges by Sex", fontsize=12, fontweight="bold")
+axes[0, 0].set_ylabel("Charges ($)", fontsize=10, fontweight="bold")
+axes[0, 0].set_xlabel("Sex", fontsize=10, fontweight="bold")
+axes[0, 0].grid(True, alpha=0.3, axis="y")
+
+# Smoker vs Charges
+sns.boxplot(
+    data=hospitaldata,
+    x="smoker",
+    y="charges",
+    ax=axes[0, 1],
+    palette=[colors[2], colors[1]],
+)
+axes[0, 1].set_title("Charges by Smoker Status", fontsize=12, fontweight="bold")
+axes[0, 1].set_ylabel("Charges ($)", fontsize=10, fontweight="bold")
+axes[0, 1].set_xlabel("Smoker", fontsize=10, fontweight="bold")
+axes[0, 1].grid(True, alpha=0.3, axis="y")
+
+# Region vs Charges
+sns.boxplot(data=hospitaldata, x="region", y="charges", ax=axes[1, 0], palette="Set2")
+axes[1, 0].set_title("Charges by Region", fontsize=12, fontweight="bold")
+axes[1, 0].set_ylabel("Charges ($)", fontsize=10, fontweight="bold")
+axes[1, 0].set_xlabel("Region", fontsize=10, fontweight="bold")
+axes[1, 0].tick_params(axis="x", rotation=45)
+axes[1, 0].grid(True, alpha=0.3, axis="y")
+
+# Children distribution
+hospitaldata["children"].value_counts().sort_index().plot(
+    kind="bar", ax=axes[1, 1], color=colors[0], alpha=0.7, edgecolor="black"
+)
+axes[1, 1].set_title(
+    "Distribution of Number of Children", fontsize=12, fontweight="bold"
+)
+axes[1, 1].set_ylabel("Count", fontsize=10, fontweight="bold")
+axes[1, 1].set_xlabel("Number of Children", fontsize=10, fontweight="bold")
+axes[1, 1].tick_params(axis="x", rotation=0)
+axes[1, 1].grid(True, alpha=0.3, axis="y")
+
+plt.tight_layout()
+plt.show()
+```
+
+## Age and BMI Analysis
+
+```{python}
+fig, axes = plt.subplots(1, 2, figsize=(14, 5))
+
+# Create color array: green for non-smokers (0), red for smokers (1)
+colors = ["#2ecc71" if x == 0 else "#e74c3c" for x in temp["smoker"]]
+
+# Scatter plot: Age vs Charges
+axes[0].scatter(
+    hospitaldata["age"],
+    hospitaldata["charges"],
+    c=colors,
+    alpha=0.6,
+    s=50,
+    edgecolors="black",
+    linewidth=0.5,
+)
+axes[0].set_xlabel("Age", fontsize=11, fontweight="bold")
+axes[0].set_ylabel("Charges ($)", fontsize=11, fontweight="bold")
+axes[0].set_title(
+    "Age vs Charges (colored by Smoker Status)", fontsize=12, fontweight="bold"
+)
+axes[0].grid(True, alpha=0.3)
+
+# Add legend
+from matplotlib.patches import Patch
+
+legend_elements = [
+    Patch(facecolor="#2ecc71", label="Non-Smoker"),
+    Patch(facecolor="#e74c3c", label="Smoker"),
+]
+axes[0].legend(
+    handles=legend_elements, loc="upper left", frameon=True, fancybox=True, shadow=True
+)
+
+# BMI vs Charges
+axes[1].scatter(
+    hospitaldata["bmi"],
+    hospitaldata["charges"],
+    c=colors,
+    alpha=0.6,
+    s=50,
+    edgecolors="black",
+    linewidth=0.5,
+)
+axes[1].set_xlabel("BMI", fontsize=11, fontweight="bold")
+axes[1].set_ylabel("Charges ($)", fontsize=11, fontweight="bold")
+axes[1].set_title(
+    "BMI vs Charges (colored by Smoker Status)", fontsize=12, fontweight="bold"
+)
+axes[1].grid(True, alpha=0.3)
+
+# Add legend
+axes[1].legend(
+    handles=legend_elements, loc="upper left", frameon=True, fancybox=True, shadow=True
+)
+
+plt.tight_layout()
 plt.show()
 ```
