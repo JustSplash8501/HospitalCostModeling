@@ -20,7 +20,12 @@ This dataset allows us to explore how various factors like age, BMI, smoking hab
 
 ## 📄 Project Overview
 
-The analysis is structured in **four phases**:
+The analysis is structured in **four phases** across 2 documents:
+Render PDF and HTML of both markdowns can be found in `docs` folder.
+- dataExploration.qmd
+- dataModeling.qmd
+
+
 
 ### 1. Data Exploration
 - Examine the dataset to understand **univariate relationships** (individual features).  
