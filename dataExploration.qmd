@@ -58,23 +58,40 @@ if os.name == "posix":
 else:
     path = r"A:\VSCodeProjects\MLA Projects\HospitalCostModeling\data\insurance.csv"
 
-insurancedata = pd.read_csv(path)
-insurancedata.head()
+healthdata = pd.read_csv(path)
+healthdata.head()
 ```
 
 ## Descriptive Statistics
 
 ```{python}
 # Summary statistics
-print("Dataset Shape:", insurancedata.shape)
+print("Dataset Shape:", healthdata.shape)
 print("\nSummary Statistics:")
-print(insurancedata.describe())
+print(healthdata.describe().T)
 
 print("\nCategorical Variables:")
-print(insurancedata[['sex', 'smoker', 'region']].describe())
+print(healthdata[["sex", "smoker", "region"]].describe().T)
 
 print("\nMissing Values:")
-print(insurancedata.isnull().sum())
+print(healthdata.isnull().sum())
+```
+
+```{python}
+
+cat_cols = ["sex", "smoker", "region", "children"]
+num_cols = ["age", "bmi"]
+
+for col in cat_cols:
+    print(
+        pd.DataFrame(
+            {
+                "Count": healthdata[col].value_counts(),
+                "Ratio": 100 * healthdata[col].value_counts() / len(healthdata),
+            }
+        ).to_markdown(numalign="center", stralign="center")
+    )
+    print("\n")
 ```
 
 ## Exploratory Data Analysis
@@ -85,14 +102,14 @@ print(insurancedata.isnull().sum())
 fig, axes = plt.subplots(1, 2, figsize=(14, 5))
 
 # Histogram
-axes[0].hist(insurancedata['charges'], bins=50, edgecolor='black', alpha=0.7)
+axes[0].hist(healthdata['charges'], bins=50, edgecolor='black', alpha=0.7)
 axes[0].set_xlabel('Insurance Charges ($)')
 axes[0].set_ylabel('Frequency')
 axes[0].set_title('Distribution of Insurance Charges')
 axes[0].grid(axis='y', alpha=0.3)
 
 # Box plot
-axes[1].boxplot(insurancedata['charges'])
+axes[1].boxplot(healthdata['charges'])
 axes[1].set_ylabel('Insurance Charges ($)')
 axes[1].set_title('Box Plot of Insurance Charges')
 axes[1].grid(axis='y', alpha=0.3)
@@ -100,9 +117,9 @@ axes[1].grid(axis='y', alpha=0.3)
 plt.tight_layout()
 plt.show()
 
-print(f"Mean Insurance Cost: ${insurancedata['charges'].mean():,.2f}")
-print(f"Median Insurance Cost: ${insurancedata['charges'].median():,.2f}")
-print(f"Std Dev: ${insurancedata['charges'].std():,.2f}")
+print(f"Mean Insurance Cost: ${healthdata['charges'].mean():,.2f}")
+print(f"Median Insurance Cost: ${healthdata['charges'].median():,.2f}")
+print(f"Std Dev: ${healthdata['charges'].std():,.2f}")
 ```
 
 The distribution of insurance charges is right-skewed, indicating that while most individuals have moderate costs, some have exceptionally high charges. This suggests the presence of distinct subgroups in the data, likely driven by health risk factors.
@@ -113,28 +130,28 @@ The distribution of insurance charges is right-skewed, indicating that while mos
 fig, axes = plt.subplots(2, 2, figsize=(14, 10))
 
 # Age vs Charges
-axes[0, 0].scatter(insurancedata['age'], insurancedata['charges'], alpha=0.5)
+axes[0, 0].scatter(healthdata['age'], healthdata['charges'], alpha=0.5)
 axes[0, 0].set_xlabel('Age')
 axes[0, 0].set_ylabel('Insurance Charges ($)')
 axes[0, 0].set_title('Age vs Insurance Charges')
 axes[0, 0].grid(alpha=0.3)
 
 # BMI vs Charges
-axes[0, 1].scatter(insurancedata['bmi'], insurancedata['charges'], alpha=0.5)
+axes[0, 1].scatter(healthdata['bmi'], healthdata['charges'], alpha=0.5)
 axes[0, 1].set_xlabel('BMI')
 axes[0, 1].set_ylabel('Insurance Charges ($)')
 axes[0, 1].set_title('BMI vs Insurance Charges')
 axes[0, 1].grid(alpha=0.3)
 
 # Smoker vs Charges
-smoker_data = insurancedata.groupby('smoker')['charges'].apply(list)
+smoker_data = healthdata.groupby('smoker')['charges'].apply(list)
 axes[1, 0].boxplot([smoker_data['no'], smoker_data['yes']], labels=['Non-Smoker', 'Smoker'])
 axes[1, 0].set_ylabel('Insurance Charges ($)')
 axes[1, 0].set_title('Smoking Status vs Insurance Charges')
 axes[1, 0].grid(axis='y', alpha=0.3)
 
 # Children vs Charges
-children_data = insurancedata.groupby('children')['charges'].mean()
+children_data = healthdata.groupby('children')['charges'].mean()
 axes[1, 1].bar(children_data.index, children_data.values)
 axes[1, 1].set_xlabel('Number of Children')
 axes[1, 1].set_ylabel('Average Insurance Charges ($)')
@@ -145,20 +162,69 @@ plt.tight_layout()
 plt.show()
 ```
 
-### Key Observations from EDA
+### Age and BMI + Smoker status Analysis
 
 ```{python}
-print("Average charges by smoking status:")
-print(insurancedata.groupby('smoker')['charges'].agg(['mean', 'median', 'std']))
+import matplotlib.pyplot as plt
+from matplotlib.patches import Patch
 
-print("\nAverage charges by region:")
-print(insurancedata.groupby('region')['charges'].agg(['mean', 'median']))
+# Ensure smoker column is lowercase strings (handles "Yes"/"No" etc.)
+smoker_col = healthdata["smoker"].str.lower()
+colors = [
+    "#2ecc71" if s in ["no", "non-smoker", "0"] else "#e74c3c" for s in smoker_col
+]
 
-print("\nCorrelation with charges:")
-numeric_cols = insurancedata.select_dtypes(include='number')
-correlations = numeric_cols.corr()['charges'].sort_values(ascending=False)
-print(correlations)
+fig, axes = plt.subplots(1, 2, figsize=(14, 5))
+
+# Age vs charges colored by smoker status
+axes[0].scatter(
+    healthdata["age"],
+    healthdata["charges"],
+    c=colors,
+    alpha=0.6,
+    s=50,
+    edgecolors="black",
+    linewidth=0.5,
+)
+axes[0].set_xlabel("Age", fontsize=11, fontweight="bold")
+axes[0].set_ylabel("Charges ($)", fontsize=11, fontweight="bold")
+axes[0].set_title(
+    "Age vs Charges (colored by Smoker Status)", fontsize=12, fontweight="bold"
+)
+axes[0].grid(True, alpha=0.3)
+
+legend_elements = [
+    Patch(facecolor="#2ecc71", label="Non-Smoker"),
+    Patch(facecolor="#e74c3c", label="Smoker"),
+]
+axes[0].legend(
+    handles=legend_elements, loc="upper left", frameon=True, fancybox=True, shadow=True
+)
+
+# Age vs BMI colored by smoker status
+axes[1].scatter(
+    healthdata["bmi"],
+    healthdata["charges"],
+    c=colors,
+    alpha=0.6,
+    s=50,
+    edgecolors="black",
+    linewidth=0.5,
+)
+axes[1].set_xlabel("BMI", fontsize=11, fontweight="bold")
+axes[1].set_ylabel("Charges ($)", fontsize=11, fontweight="bold")
+axes[1].set_title(
+    "BMI vs Charges (colored by Smoker Status)", fontsize=12, fontweight="bold"
+)
+axes[1].grid(True, alpha=0.3)
+axes[1].legend(
+    handles=legend_elements, loc="upper left", frameon=True, fancybox=True, shadow=True
+)
+
+plt.tight_layout()
+plt.show()
 ```
+
 
 **Key Findings:**
 
