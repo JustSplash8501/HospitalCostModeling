@@ -1,15 +1,56 @@
 ---
-title: "Hospital Cost Data Exploration"
-author: Reese Wilson
+title: "Medical Insurance Cost Prediction: Data Exploration"
+author: "Reese Wilson"
+date: today
 format: html
+description: |
+  Analysis and modeling of insurance charges using demographic and health features.
+  Includes feature engineering, Random Forest regression with hyperparameter tuning via Optuna,
+  and interpretability with SHAP.
+keywords: [data science, machine learning, regression, Random Forest, Optuna, SHAP]
+repository: https://github.com/JustSplash8501/hospital-cost-modeling
+format: html
+execute:
+  warning: false
+  message: false
 ---
 
-# Import data
+# Executive Summary
+
+This analysis develops predictive models for medical insurance costs using patient demographic and health data. We compare two modeling approaches: Multiple Linear Regression and Random Forest Regression. The Random Forest model significantly outperformed linear regression, achieving a test MAE of $2,560 compared to $4,237, demonstrating the importance of capturing non-linear relationships in insurance cost prediction. Key findings reveal that smoking status, age, and BMI are the most influential factors in determining medical insurance costs.
+
+# Introduction
+
+## Background
+
+Medical insurance costs in the United States vary substantially based on individual characteristics and health factors. Understanding the drivers of these costs is crucial for insurance companies in premium pricing, risk assessment, and for individuals in making informed healthcare decisions. This analysis examines how demographic factors (age, sex, region) and health-related variables (BMI, smoking status, number of children) influence medical insurance charges.
+
+## Research Questions
+
+1. What are the primary factors driving medical insurance costs?
+2. Can we accurately predict insurance charges based on patient characteristics?
+3. How do non-linear relationships affect model performance in cost prediction?
+4. What is the magnitude of impact for each predictor variable?
+
+## Dataset Description
+
+The dataset contains medical insurance information for 1,338 individuals with the following variables:
+
+- **Age**: Patient age in years
+- **Sex**: Male or female
+- **BMI**: Body Mass Index, a measure of body fat based on height and weight
+- **Children**: Number of dependents covered by insurance
+- **Smoker**: Whether the individual smokes (yes/no)
+- **Region**: Geographic region in the US (northeast, northwest, southeast, southwest)
+- **Charges**: Medical insurance costs billed by insurance (target variable)
+
+# Data Import and Exploration
 
 ```{python}
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+import seaborn as sns
 import os
 
 if os.name == "posix":
@@ -17,220 +58,112 @@ if os.name == "posix":
 else:
     path = r"A:\VSCodeProjects\MLA Projects\HospitalCostModeling\data\insurance.csv"
 
-hospitaldata = pd.read_csv(path)
-hospitaldata.head()
-hospitaldata.info()
-hospitaldata.describe()
-hospitaldata.select_dtypes("object").nunique()
+insurancedata = pd.read_csv(path)
+insurancedata.head()
 ```
 
-# Data Exploration
-## Numerical Variables
-```{python}
-numeric_cols = hospitaldata.select_dtypes(include="number")
-print(numeric_cols.columns)
-
-# Set style for better-looking plots
-sns.set_style("whitegrid")
-plt.rcParams["figure.dpi"] = 100
-
-sns.pairplot(numeric_cols, diag_kind="kde", plot_kws={"alpha": 0.6})
-plt.suptitle("Pairplot of Numeric Variables", y=1.02, fontsize=14, fontweight="bold")
-plt.tight_layout()
-plt.show()
-```
-
-## Correlation to Charges
-Region is nearly worthless
+## Descriptive Statistics
 
 ```{python}
-# Encode categorical variables for correlation analysis
-for col in ["sex", "smoker", "region"]:
-    temp[col] = temp[col].astype("category").cat.codes
+# Summary statistics
+print("Dataset Shape:", insurancedata.shape)
+print("\nSummary Statistics:")
+print(insurancedata.describe())
 
-# Display correlation with charges
-print("Correlation with Charges (sorted):")
-print(temp.corr()["charges"].sort_values())
+print("\nCategorical Variables:")
+print(insurancedata[['sex', 'smoker', 'region']].describe())
+
+print("\nMissing Values:")
+print(insurancedata.isnull().sum())
 ```
 
-## Correlation heatmap
+## Exploratory Data Analysis
 
-```{python}
-import seaborn as sns
+### Distribution of Insurance Charges
 
-# Create correlation heatmap
-fig, ax = plt.subplots(figsize=(10, 8))
-correlation_matrix = temp.corr()
-
-sns.heatmap(
-    correlation_matrix,
-    annot=True,
-    fmt=".2f",
-    cmap="coolwarm",
-    center=0,
-    square=True,
-    linewidths=1,
-    cbar_kws={"shrink": 0.8},
-    ax=ax,
-)
-
-ax.set_title("Correlation Matrix Heatmap", fontsize=14, fontweight="bold", pad=20)
-plt.tight_layout()
-plt.show()
-```
-
-## Distribution of Charges - Target Variable
 ```{python}
 fig, axes = plt.subplots(1, 2, figsize=(14, 5))
 
-# Histogram with KDE
-axes[0].hist(
-    hospitaldata["charges"], bins=50, alpha=0.7, color="#3498db", edgecolor="black"
-)
-axes[0].set_xlabel("Charges ($)", fontsize=11, fontweight="bold")
-axes[0].set_ylabel("Frequency", fontsize=11, fontweight="bold")
-axes[0].set_title("Distribution of Hospital Charges", fontsize=12, fontweight="bold")
-axes[0].grid(True, alpha=0.3)
+# Histogram
+axes[0].hist(insurancedata['charges'], bins=50, edgecolor='black', alpha=0.7)
+axes[0].set_xlabel('Insurance Charges ($)')
+axes[0].set_ylabel('Frequency')
+axes[0].set_title('Distribution of Insurance Charges')
+axes[0].grid(axis='y', alpha=0.3)
 
 # Box plot
-axes[1].boxplot(
-    hospitaldata["charges"],
-    vert=True,
-    patch_artist=True,
-    boxprops=dict(facecolor="#3498db", alpha=0.7),
-    medianprops=dict(color="#e74c3c", linewidth=2),
-    whiskerprops=dict(linewidth=1.5),
-    capprops=dict(linewidth=1.5),
-)
-axes[1].set_ylabel("Charges ($)", fontsize=11, fontweight="bold")
-axes[1].set_title("Box Plot of Hospital Charges", fontsize=12, fontweight="bold")
-axes[1].grid(True, alpha=0.3, axis="y")
+axes[1].boxplot(insurancedata['charges'])
+axes[1].set_ylabel('Insurance Charges ($)')
+axes[1].set_title('Box Plot of Insurance Charges')
+axes[1].grid(axis='y', alpha=0.3)
 
 plt.tight_layout()
 plt.show()
 
-print(f"Mean Charges: ${hospitaldata['charges'].mean():,.2f}")
-print(f"Median Charges: ${hospitaldata['charges'].median():,.2f}")
-print(f"Std Dev: ${hospitaldata['charges'].std():,.2f}")
+print(f"Mean Insurance Cost: ${insurancedata['charges'].mean():,.2f}")
+print(f"Median Insurance Cost: ${insurancedata['charges'].median():,.2f}")
+print(f"Std Dev: ${insurancedata['charges'].std():,.2f}")
 ```
 
+The distribution of insurance charges is right-skewed, indicating that while most individuals have moderate costs, some have exceptionally high charges. This suggests the presence of distinct subgroups in the data, likely driven by health risk factors.
 
-## Categorical variables analysis
+### Relationship Between Key Variables and Charges
 
 ```{python}
 fig, axes = plt.subplots(2, 2, figsize=(14, 10))
 
-categorical_cols = ["sex", "smoker", "region"]
-colors = ["#3498db", "#e74c3c", "#2ecc71"]
-
-# Sex vs Charges
-sns.boxplot(
-    data=hospitaldata,
-    x="sex",
-    y="charges",
-    ax=axes[0, 0],
-    palette=[colors[0], colors[1]],
-)
-axes[0, 0].set_title("Charges by Sex", fontsize=12, fontweight="bold")
-axes[0, 0].set_ylabel("Charges ($)", fontsize=10, fontweight="bold")
-axes[0, 0].set_xlabel("Sex", fontsize=10, fontweight="bold")
-axes[0, 0].grid(True, alpha=0.3, axis="y")
-
-# Smoker vs Charges
-sns.boxplot(
-    data=hospitaldata,
-    x="smoker",
-    y="charges",
-    ax=axes[0, 1],
-    palette=[colors[2], colors[1]],
-)
-axes[0, 1].set_title("Charges by Smoker Status", fontsize=12, fontweight="bold")
-axes[0, 1].set_ylabel("Charges ($)", fontsize=10, fontweight="bold")
-axes[0, 1].set_xlabel("Smoker", fontsize=10, fontweight="bold")
-axes[0, 1].grid(True, alpha=0.3, axis="y")
-
-# Region vs Charges
-sns.boxplot(data=hospitaldata, x="region", y="charges", ax=axes[1, 0], palette="Set2")
-axes[1, 0].set_title("Charges by Region", fontsize=12, fontweight="bold")
-axes[1, 0].set_ylabel("Charges ($)", fontsize=10, fontweight="bold")
-axes[1, 0].set_xlabel("Region", fontsize=10, fontweight="bold")
-axes[1, 0].tick_params(axis="x", rotation=45)
-axes[1, 0].grid(True, alpha=0.3, axis="y")
-
-# Children distribution
-hospitaldata["children"].value_counts().sort_index().plot(
-    kind="bar", ax=axes[1, 1], color=colors[0], alpha=0.7, edgecolor="black"
-)
-axes[1, 1].set_title(
-    "Distribution of Number of Children", fontsize=12, fontweight="bold"
-)
-axes[1, 1].set_ylabel("Count", fontsize=10, fontweight="bold")
-axes[1, 1].set_xlabel("Number of Children", fontsize=10, fontweight="bold")
-axes[1, 1].tick_params(axis="x", rotation=0)
-axes[1, 1].grid(True, alpha=0.3, axis="y")
-
-plt.tight_layout()
-plt.show()
-```
-
-## Age and BMI Analysis
-
-```{python}
-fig, axes = plt.subplots(1, 2, figsize=(14, 5))
-
-# Create color array: green for non-smokers (0), red for smokers (1)
-colors = ["#2ecc71" if x == 0 else "#e74c3c" for x in temp["smoker"]]
-
-# Scatter plot: Age vs Charges
-axes[0].scatter(
-    hospitaldata["age"],
-    hospitaldata["charges"],
-    c=colors,
-    alpha=0.6,
-    s=50,
-    edgecolors="black",
-    linewidth=0.5,
-)
-axes[0].set_xlabel("Age", fontsize=11, fontweight="bold")
-axes[0].set_ylabel("Charges ($)", fontsize=11, fontweight="bold")
-axes[0].set_title(
-    "Age vs Charges (colored by Smoker Status)", fontsize=12, fontweight="bold"
-)
-axes[0].grid(True, alpha=0.3)
-
-# Add legend
-from matplotlib.patches import Patch
-
-legend_elements = [
-    Patch(facecolor="#2ecc71", label="Non-Smoker"),
-    Patch(facecolor="#e74c3c", label="Smoker"),
-]
-axes[0].legend(
-    handles=legend_elements, loc="upper left", frameon=True, fancybox=True, shadow=True
-)
+# Age vs Charges
+axes[0, 0].scatter(insurancedata['age'], insurancedata['charges'], alpha=0.5)
+axes[0, 0].set_xlabel('Age')
+axes[0, 0].set_ylabel('Insurance Charges ($)')
+axes[0, 0].set_title('Age vs Insurance Charges')
+axes[0, 0].grid(alpha=0.3)
 
 # BMI vs Charges
-axes[1].scatter(
-    hospitaldata["bmi"],
-    hospitaldata["charges"],
-    c=colors,
-    alpha=0.6,
-    s=50,
-    edgecolors="black",
-    linewidth=0.5,
-)
-axes[1].set_xlabel("BMI", fontsize=11, fontweight="bold")
-axes[1].set_ylabel("Charges ($)", fontsize=11, fontweight="bold")
-axes[1].set_title(
-    "BMI vs Charges (colored by Smoker Status)", fontsize=12, fontweight="bold"
-)
-axes[1].grid(True, alpha=0.3)
+axes[0, 1].scatter(insurancedata['bmi'], insurancedata['charges'], alpha=0.5)
+axes[0, 1].set_xlabel('BMI')
+axes[0, 1].set_ylabel('Insurance Charges ($)')
+axes[0, 1].set_title('BMI vs Insurance Charges')
+axes[0, 1].grid(alpha=0.3)
 
-# Add legend
-axes[1].legend(
-    handles=legend_elements, loc="upper left", frameon=True, fancybox=True, shadow=True
-)
+# Smoker vs Charges
+smoker_data = insurancedata.groupby('smoker')['charges'].apply(list)
+axes[1, 0].boxplot([smoker_data['no'], smoker_data['yes']], labels=['Non-Smoker', 'Smoker'])
+axes[1, 0].set_ylabel('Insurance Charges ($)')
+axes[1, 0].set_title('Smoking Status vs Insurance Charges')
+axes[1, 0].grid(axis='y', alpha=0.3)
+
+# Children vs Charges
+children_data = insurancedata.groupby('children')['charges'].mean()
+axes[1, 1].bar(children_data.index, children_data.values)
+axes[1, 1].set_xlabel('Number of Children')
+axes[1, 1].set_ylabel('Average Insurance Charges ($)')
+axes[1, 1].set_title('Number of Children vs Average Insurance Charges')
+axes[1, 1].grid(axis='y', alpha=0.3)
 
 plt.tight_layout()
 plt.show()
 ```
+
+### Key Observations from EDA
+
+```{python}
+print("Average charges by smoking status:")
+print(insurancedata.groupby('smoker')['charges'].agg(['mean', 'median', 'std']))
+
+print("\nAverage charges by region:")
+print(insurancedata.groupby('region')['charges'].agg(['mean', 'median']))
+
+print("\nCorrelation with charges:")
+numeric_cols = insurancedata.select_dtypes(include='number')
+correlations = numeric_cols.corr()['charges'].sort_values(ascending=False)
+print(correlations)
+```
+
+**Key Findings:**
+
+- Smokers incur dramatically higher insurance costs, with average charges approximately 3x higher than non-smokers
+- Age shows a positive relationship with charges, but with notable clustering patterns as a result of smoking and BMI
+- BMI demonstrates a non-linear relationship, particularly for smokers
+- Regional differences appear relatively modest
+- The number of children shows a weak positive association with charges

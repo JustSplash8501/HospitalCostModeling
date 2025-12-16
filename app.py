@@ -68,7 +68,6 @@ if st.button("🔮 Predict Cost", type="primary", use_container_width=True):
         prediction = model.predict(input_data)[0]
         
         # Calculate confidence interval using individual tree predictions
-        # Extract the random forest regressor from the pipeline
         rf_regressor = model.named_steps['regressor']
         X_processed = model.named_steps['preprocess'].transform(input_data)
         
@@ -148,7 +147,7 @@ if st.button("🔮 Predict Cost", type="primary", use_container_width=True):
             is calculated from the predictions of all {len(tree_predictions)} individual 
             trees in the Random Forest model.
             
-            **Model Information:**
+            **Model Information:**s
             - Algorithm: Random Forest Regressor (Tuned)
             - Number of Trees: {len(tree_predictions)}
             - Training R²: 0.91
