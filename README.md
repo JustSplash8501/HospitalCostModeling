@@ -20,7 +20,7 @@ This dataset allows us to explore how various factors like age, BMI, smoking hab
 
 ## 📄 Project Overview
 
-The analysis is structured in **three main phases**:
+The analysis is structured in **four phases**:
 
 ### 1. Data Exploration
 - Examine the dataset to understand **univariate relationships** (individual features).  
@@ -76,10 +76,17 @@ Build and evaluate **two predictive models** for hospital cost estimation:
 - Compare model performance using appropriate metrics to select the best candidate for deployment.  
 - **Save Final Model:** The optimized model was saved for future use.
 
+### 4. Model Deployment
+- Real-time predictions using the tuned Random Forest pipeline (preprocessing + model)
+- Prediction-specific 95% confidence intervals calculated from individual tree predictions
+- Visual representation of prediction ranges with risk factor insights
+- Responsive UI with input validation for all demographic and health features
+
+
 ---
 
 ## Tools & Technologies
-- Python (`pandas`, `numpy`, `scikit-learn`, `optuna`, `matplotlib`, `seaborn`)  
+- Python (`pandas`, `numpy`, `scikit-learn`, `optuna`, `matplotlib`, `seaborn`, and `streamlit`)  
 - Quarto Notebook for interactive analysis and visualization  
 - GitHub for version control and project documentation
 
@@ -94,3 +101,16 @@ Build and evaluate **two predictive models** for hospital cost estimation:
 
 ## **📌 Summary**
 This project focuses on predicting medical costs through the development and comparison of machine learning models, with a strong focus on optimization and interpretability. Two models—Random Forest and Linear Regression—were trained and evaluated, with Random Forest demonstrating superior predictive performance. Hyperparameter tuning using Optuna further enhanced model accuracy, while SHAP analysis provided a detailed understanding of feature contributions. Key factors such as smoking status, BMI, and age were identified as major drivers of medical costs. The workflow encompassed the entire process, from exploratory data analysis and feature evaluation to model training, optimization, and final selection, culminating in a saved, deployable model.
+
+---
+
+To deploy the UI, the following bash script can be used.
+```bash
+git clone https://github.com/JustSplash8501/hospital-cost-modeling.git
+cd hospital-cost-modeling
+
+pip install -r requirements.txt
+
+streamlit run app.py
+```
+The app will automatically open in your browser at `http://localhost:8501`

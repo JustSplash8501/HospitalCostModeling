@@ -17,7 +17,6 @@ format: html
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-
 import os
 
 if os.name == "posix":
@@ -524,5 +523,6 @@ model_artifact = {
     "sklearn_version": sklearn.__version__,
 }
 
-joblib.dump(model_artifact, "model_artifact.pkl")
+os.makedirs("models", exist_ok=True)
+joblib.dump(model_artifact, "models/tuned_rf_model.pkl")
 ```

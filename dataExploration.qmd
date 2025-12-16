@@ -4,23 +4,24 @@ author: Reese Wilson
 format: html
 ---
 
+# Import data
+
 ```{python}
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-import seaborn as sns
-```
+import os
 
-# Import data
+if os.name == "posix":
+    path = "/Users/raw/Desktop/gitProjects/HospitalCostModeling/data/insurance.csv"
+else:
+    path = r"A:\VSCodeProjects\MLA Projects\HospitalCostModeling\data\insurance.csv"
 
-```{python}
-path = r"A:\VSCodeProjects\MLA Projects\HospitalCostModeling\data\insurance.csv"
 hospitaldata = pd.read_csv(path)
 hospitaldata.head()
 hospitaldata.info()
 hospitaldata.describe()
 hospitaldata.select_dtypes("object").nunique()
-temp = hospitaldata.copy()
 ```
 
 # Data Exploration
@@ -55,6 +56,8 @@ print(temp.corr()["charges"].sort_values())
 ## Correlation heatmap
 
 ```{python}
+import seaborn as sns
+
 # Create correlation heatmap
 fig, ax = plt.subplots(figsize=(10, 8))
 correlation_matrix = temp.corr()
