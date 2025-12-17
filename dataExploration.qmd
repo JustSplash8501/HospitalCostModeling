@@ -34,8 +34,7 @@ Medical insurance costs in the United States vary substantially based on individ
 
 1. What are the primary factors driving medical insurance costs?
 2. Can we accurately predict insurance charges based on patient characteristics?
-3. How do non-linear relationships affect model performance in cost prediction?
-4. What is the magnitude of impact for each predictor variable?
+3. What is the magnitude of impact for each predictor variable?
 
 ## Dataset Description
 

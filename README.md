@@ -109,13 +109,14 @@ This project focuses on predicting medical costs through the development and com
 
 ---
 
-To deploy the UI, the following bash script can be used.
+To deploy the UI, the following bash script can be used with `uv` package manager. If `uv` is not installed, instructions can be found [here](https://docs.astral.sh/uv/getting-started/installation/).
 ```bash
 git clone https://github.com/JustSplash8501/hospital-cost-modeling.git
 cd hospital-cost-modeling
 
-pip install -r requirements.txt
-
-streamlit run app.py
+uv init
+uv sync
+uv run python
+uv run streamlit run app.py
 ```
 The app will automatically open in your browser at `http://localhost:8501`
