@@ -14,10 +14,10 @@ description: |
   and interpretability with SHAP.
 keywords: [data science, machine learning, regression, Random Forest, Optuna, SHAP]
 repository: https://github.com/JustSplash8501/hospital-cost-modeling
-format: html
 execute:
   warning: false
   message: false
+  echo: true
 ---
 
 # Executive Summary
