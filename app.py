@@ -1,3 +1,8 @@
+# Database Contents License (DbCL)
+# Copyright (C) 2025 JustSplash8501
+# Licensed under the Database Contents License (DbCL).
+# The contents are provided "as is" without warranty of any kind.
+
 # app.py
 import streamlit as st
 import pandas as pd
