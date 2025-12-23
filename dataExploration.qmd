@@ -60,13 +60,12 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 import os
+from pathlib import Path
 
-if os.name == "posix":
-    path = "/Users/raw/Desktop/gitProjects/HospitalCostModeling/data/insurance.csv"
-else:
-    path = r"A:\VSCodeProjects\MLA Projects\HospitalCostModeling\data\insurance.csv"
+BASE_DIR = Path(__file__).resolve().parent
+DATA_PATH = BASE_DIR / "data" / "insurance.csv"
 
-healthdata = pd.read_csv(path)
+healthdata = pd.read_csv(DATA_PATH)
 healthdata.head()
 ```
 

@@ -41,13 +41,12 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import os
+from pathlib import Path
 
-if os.name == "posix":
-    path = "/Users/raw/Desktop/gitProjects/HospitalCostModeling/data/insurance.csv"
-else:
-    path = r"A:\VSCodeProjects\MLA Projects\HospitalCostModeling\data\insurance.csv"
+BASE_DIR = Path(__file__).resolve().parent
+DATA_PATH = BASE_DIR / "data" / "insurance.csv"
 
-hospitaldata = pd.read_csv(path)
+hospitaldata = pd.read_csv(DATA_PATH)
 hospitaldata.head()
 ```
 
@@ -587,6 +586,11 @@ model_artifact = {
     "sklearn_version": sklearn.__version__,
 }
 
-os.makedirs("models", exist_ok=True)
-joblib.dump(model_artifact, "models/tuned_rf_model.pkl")
+# Setup models folder and path
+models_dir = Path("models")
+models_dir.mkdir(parents=True, exist_ok=True)  # replaces os.makedirs(...)
+model_path = models_dir / "tuned_rf_model.pkl"
+
+# Save the model
+joblib.dump(model_artifact, model_path)
 ```
