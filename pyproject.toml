@@ -5,6 +5,7 @@ requires-python = ">= 3.12.3"
 dependencies = [
     "datetime>=6.0",
     "joblib>=1.5.3",
+    "jupyter>=1.1.1",
     "matplotlib>=3.10.8",
     "numpy>=2.3.5",
     "optuna>=4.6.0",

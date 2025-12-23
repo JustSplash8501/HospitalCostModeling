@@ -5,9 +5,6 @@ date: today
 format: 
   pdf:
     toc: true
-  html:
-    toc: true
-    theme: cosmo
 description: |
   Analysis and modeling of insurance charges using demographic and health features.
   Includes feature engineering, Random Forest regression with hyperparameter tuning via Optuna,
@@ -62,7 +59,7 @@ import seaborn as sns
 import os
 from pathlib import Path
 
-BASE_DIR = Path(__file__).resolve().parent
+BASE_DIR = Path.cwd()
 DATA_PATH = BASE_DIR / "data" / "insurance.csv"
 
 healthdata = pd.read_csv(DATA_PATH)

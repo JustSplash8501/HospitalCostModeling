@@ -5,24 +5,18 @@ date: today
 format: 
   pdf:
     toc: true
-  html:
-    toc: true
-    theme: cosmo
 description: |
   Analysis and modeling of insurance charges using demographic and health features.
   Includes feature engineering, Random Forest regression with hyperparameter tuning via Optuna,
   and interpretability with SHAP.
 keywords: [data science, machine learning, regression, Random Forest, Optuna, SHAP]
-repository: https://github.com/JustSplash8501/hospital-cost-modeling
+repository: https://github.com/JustSplash8501/HospitalCostModeling
 execute:
   warning: false
   message: false
   echo: true
+license: Database Contents License (DbCL)
 ---
-# Database Contents License (DbCL)
-# Copyright (C) 2025 JustSplash8501
-# Licensed under the Database Contents License (DbCL).
-# The contents are provided "as is" without warranty of any kind.
 
 # Executive Summary
 
@@ -43,7 +37,7 @@ import matplotlib.pyplot as plt
 import os
 from pathlib import Path
 
-BASE_DIR = Path(__file__).resolve().parent
+BASE_DIR = Path.cwd()
 DATA_PATH = BASE_DIR / "data" / "insurance.csv"
 
 hospitaldata = pd.read_csv(DATA_PATH)
@@ -57,24 +51,7 @@ hospitaldata.head()
 **VIF**
 Based on variable importance factor (VIF), no multi-collinearity exists within this dataset. This test satisfies one of the assumptions required for multi-linear regression.
 ```{python}
-from statsmodels.stats.outliers_influence import variance_inflation_factor
-from statsmodels.tools.tools import add_constant
-
-def compute_vif(df):
-    numeric_cols = hospitaldata.select_dtypes(include="number")
-
-    numeric_cols = add_constant(numeric_cols)
-    vif = pd.DataFrame(
-        {
-            "feature": numeric_cols.columns,
-            "VIF": [
-                variance_inflation_factor(numeric_cols.values, i)
-                for i in range(numeric_cols.shape[1])
-            ],
-        }
-    )
-    return vif
-
+from src.models.mlm import compute_vif
 
 vif_df = compute_vif(hospitaldata)
 print(vif_df)
@@ -160,12 +137,7 @@ print(dw_val_str)
 
 ```{python}
 from sklearn.metrics import r2_score, mean_absolute_error
-
-
-def adj_r2_score(r2, n, p):
-    adj_r2 = 1 - (1 - r2) * (n - 1) / (n - p - 1)
-    return adj_r2
-
+from src.models.mlm import adj_r2_score
 
 # Train Metrics
 y_train_pred = mlmmodel.predict(X_train)
@@ -188,7 +160,7 @@ mae_test = mean_absolute_error(y_test, y_test_pred)
 print(f"    Test Dataset MAE: {mae_test:.2f}\n\n")
 ```
 
-The linear model explains approximately 78% of the variance in insurance costs but shows concerning assumption violations that may limit its predictive accuracy. To address this, a model, Random Forest, which can capture non-linear relationships will be tested to determine if it can be more accurate in prediction of the target variable.
+The linear model explains approximately 78% of the variance in insurance costs with a mean absolute error (MAE) of $4181.29, but shows violations of several assumptions necessary for an interpretable and accurate model ultimately limiting its predictive accuracy. To address this, a model, Random Forest tree-based model, which can capture non-linear relationships will be tested to determine if it can be more accurate in prediction of the target variable.
 
 ## Random Forest Regressor
 
@@ -291,7 +263,9 @@ def objective(trial):
     return score
 
 
-study = optuna.create_study(direction="maximize", sampler=TPESampler(n_startup_trials=5))
+study = optuna.create_study(
+    direction="maximize", sampler=TPESampler(n_startup_trials=5)
+)
 study.optimize(objective, n_trials=50, timeout=3600)
 
 best_params = study.best_params
@@ -329,7 +303,7 @@ ax.scatter(
     label="Trial Value",
 )
 
-# Calculate and plot the best value so far
+# Calculate and plot best values
 best_values = []
 abs_values = [abs(v) for v in values]
 current_best = float("inf")
@@ -346,27 +320,22 @@ ax.plot(
     zorder=4,
 )
 
-# Styling
 ax.set_xlabel("Trial Number", fontsize=12, fontweight="bold", labelpad=10)
 ax.set_ylabel("Objective Value", fontsize=12, fontweight="bold", labelpad=10)
 ax.set_title("Optimization History", fontsize=14, fontweight="bold", pad=20)
 
-# Grid
 ax.grid(True, alpha=0.3, linestyle="--", linewidth=0.8, zorder=1)
 ax.set_axisbelow(True)
 
-# Legend
 ax.legend(
     loc="best", frameon=True, fancybox=True, shadow=True, fontsize=10, framealpha=0.95
 )
 
-# Spines
 for spine in ax.spines.values():
     spine.set_visible(True)
     spine.set_linewidth(2)
     spine.set_edgecolor("black")
 
-# Tight layout
 plt.tight_layout()
 plt.show()
 ```
@@ -389,18 +358,19 @@ mae_test = mean_absolute_error(y_test, y_test_pred)
 print(f"    Test Dataset MAE: {mae_test:.2f}\n\n")
 ```
 
-While the R² of the tuned random forest model did not improve compared to the base model, the MAE of the model was improved from 3192.66 to 2560.42 on the test dataset suggesting a noticeable improvement. Given this improvement, the tuned model should be statistically tested against the multi-linear regression model to determine which method statistically produces less error in prediction.
+While the R² of the tuned random forest model did not improve compared to the base model, the MAE of the model was improved from 3192.66 to 2533.98 on the test dataset suggesting a noticeable improvement. Given this improvement, the tuned model should be statistically tested against the multi-linear regression model to determine which method statistically produces less error in prediction.
 
 ### Feature Importance
 
 ```{python}
 import shap
 
-# Explain the fitted RandomForest on preprocessed data
+# Setup data for SHAP explainer
 preprocessor = rfrtunemodel.named_steps["preprocess"]
 X_train_proc = preprocessor.transform(X_train)
 feature_names = preprocessor.get_feature_names_out()
 
+# Compute SHAP values
 explainer_tree = shap.TreeExplainer(rfrtunemodel.named_steps["regressor"])
 shap_values_tree = explainer_tree(X_train_proc)
 shap.summary_plot(shap_values_tree, features=X_train_proc, feature_names=feature_names)
@@ -491,7 +461,7 @@ models_list = performance_df["Model"].tolist()
 x = np.arange(len(models_list))
 width = 0.35
 
-# R² comparison
+# R2 comparison
 ax1 = axes[0]
 ax1.bar(x - width / 2, performance_df["Train R²"], width, label="Train", alpha=0.8)
 ax1.bar(x + width / 2, performance_df["Test R²"], width, label="Test", alpha=0.8)
@@ -588,7 +558,7 @@ model_artifact = {
 
 # Setup models folder and path
 models_dir = Path("models")
-models_dir.mkdir(parents=True, exist_ok=True)  # replaces os.makedirs(...)
+models_dir.mkdir(parents=True, exist_ok=True) 
 model_path = models_dir / "tuned_rf_model.pkl"
 
 # Save the model
