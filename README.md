@@ -20,11 +20,11 @@ This dataset allows us to explore how various factors like age, BMI, smoking hab
 
 ## 📄 Project Overview
 
-The analysis is structured in **four phases** across 2 documents:
+The analysis is structured in **four phases** across 3 documents:
 Render PDF and HTML of both markdowns can be found in `docs` folder.
 - dataExploration.qmd
 - dataModeling.qmd
-
+- app.py
 
 
 ### 1. Data Exploration
@@ -86,6 +86,8 @@ Build and evaluate **two predictive models** for hospital cost estimation:
 - Prediction-specific 95% confidence intervals calculated from individual tree predictions
 - Visual representation of prediction ranges with risk factor insights
 - Responsive UI with input validation for all demographic and health features
+
+*["img/modeling_screenshot.png"]*
 
 
 ---
