@@ -2,6 +2,9 @@
 
 This project is the first of several personal data science initiatives I’m adding to my portfolio outside of academic work. It focuses on understanding and predicting hospital costs using real-world healthcare data.
 
+![Python](https://img.shields.io/badge/python-3.10+-blue.svg)
+![License](https://img.shields.io/badge/license-DbCL--1.0-blue)
+
 ---
 
 ## **📊 About the Dataset**
